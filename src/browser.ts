@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import * as dotenv from 'dotenv';
+import { analyzeImage } from './openai';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -51,6 +52,12 @@ async function main() {
         const screenshotBuffer = await page.screenshot({ fullPage: true });
         const base64Screenshot = screenshotBuffer.toString('base64');
         console.log('Screenshot taken and converted to base64');
+        
+        // Analyze the screenshot using OpenAI
+        console.log('Analyzing screenshot with OpenAI...');
+        const analysis = await analyzeImage(base64Screenshot, prompt);
+        console.log('Analysis result:');
+        console.log(analysis);
         
         // Keep the browser open for the configured timeout
         await new Promise(resolve => setTimeout(resolve, timeout));
