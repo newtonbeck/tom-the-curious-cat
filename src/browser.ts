@@ -1,4 +1,8 @@
 import { chromium } from 'playwright';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 interface CommandLineArgs {
     url: string;
@@ -26,8 +30,14 @@ async function main() {
     console.log(`Opening URL: ${url}`);
     console.log(`With prompt: ${prompt}`);
 
+    // Get browser configuration from environment variables
+    const headless = process.env.BROWSER_HEADLESS === 'true';
+    const timeout = parseInt(process.env.BROWSER_TIMEOUT || '30000', 10);
+    
+    console.log(`Browser configuration: headless=${headless}, timeout=${timeout}ms`);
+
     // Launch the browser
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({ headless });
     
     try {
         // Create a new context and page
@@ -36,9 +46,14 @@ async function main() {
         
         // Navigate to the provided URL
         await page.goto(url);
+
+        // Take a screenshot and convert it to base64
+        const screenshotBuffer = await page.screenshot({ fullPage: true });
+        const base64Screenshot = screenshotBuffer.toString('base64');
+        console.log('Screenshot taken and converted to base64');
         
-        // Keep the browser open for 30 seconds
-        await new Promise(resolve => setTimeout(resolve, 30000));
+        // Keep the browser open for the configured timeout
+        await new Promise(resolve => setTimeout(resolve, timeout));
     } catch (error) {
         console.error('An error occurred:', error);
     } finally {
